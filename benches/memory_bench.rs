@@ -11,7 +11,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use edgevec::hnsw::HnswConfig;
 use edgevec::quantization::QuantizerConfig;
 use edgevec::storage::{StorageType, VectorStorage};
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
 fn bench_storage_memory(c: &mut Criterion) {

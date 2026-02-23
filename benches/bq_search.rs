@@ -17,11 +17,12 @@
 //! - Queries: 100 per run (averaged)
 //! - k: 10 (standard recall@10)
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use edgevec::hnsw::{HnswConfig, HnswIndex};
 use edgevec::storage::VectorStorage;
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
+use std::hint::black_box;
 
 /// Generate a random f32 vector with values in [-1, 1].
 fn generate_vector(dims: usize, seed: u64) -> Vec<f32> {

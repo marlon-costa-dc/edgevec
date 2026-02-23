@@ -18,11 +18,12 @@
 //! - Measurement: Criterion with 100 sample iterations
 //! - RNG: Deterministic seeded ChaCha8Rng for reproducibility
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use edgevec::quantization::variable::BinaryVector;
 use edgevec::simd::popcount::{scalar_popcount_xor, simd_popcount_xor};
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
+use std::hint::black_box;
 
 /// Generate a random f32 vector of given dimension.
 fn generate_f32_vector(dims: usize, seed: u64) -> Vec<f32> {

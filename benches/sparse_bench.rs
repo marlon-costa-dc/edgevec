@@ -4,10 +4,11 @@
 //! - Dot product (50 nnz): P50 <300ns, P99 <500ns
 //! - Dot product (100 nnz): P50 <600ns, P99 <1us
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use edgevec::sparse::{sparse_cosine, sparse_dot_product, sparse_norm, SparseVector};
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
+use std::hint::black_box;
 
 /// Generate a random sparse vector with given parameters.
 ///

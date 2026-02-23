@@ -5,10 +5,11 @@
 //! - Get: <1us
 //! - Iteration: <100ms for 100k vectors
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use edgevec::sparse::{SparseId, SparseStorage, SparseVector};
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
+use std::hint::black_box;
 use std::time::Duration;
 
 /// Generate a random sparse vector with given parameters.

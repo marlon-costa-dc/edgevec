@@ -35,7 +35,7 @@ impl ChaosStorageBackend {
             return false;
         }
         let mut rng = self.rng.lock().unwrap();
-        rng.gen_bool(rate)
+        rng.random_bool(rate)
     }
 }
 

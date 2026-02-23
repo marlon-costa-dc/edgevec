@@ -15,10 +15,11 @@
 //! - Search (10k @ 768D): <50ms
 //! - BQ Search: ~10x faster than F32 search
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use edgevec::index::{DistanceMetric, FlatIndex, FlatIndexConfig};
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
+use std::hint::black_box;
 
 /// Generates deterministic test vectors.
 fn generate_vectors(count: usize, dims: usize, seed: u64) -> Vec<Vec<f32>> {
@@ -130,7 +131,7 @@ fn bench_quantized_vs_f32(c: &mut Criterion) {
     let vectors: Vec<Vec<f32>> = (0..count)
         .map(|_| {
             (0..dims)
-                .map(|_| if rng.gen_bool(0.5) { 1.0 } else { -1.0 })
+                .map(|_| if rng.random_bool(0.5) { 1.0 } else { -1.0 })
                 .collect()
         })
         .collect();

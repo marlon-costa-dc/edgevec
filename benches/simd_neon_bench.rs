@@ -43,9 +43,10 @@
 //! On x86 targets, only the portable benchmark runs. NEON benchmarks are
 //! compiled out via `#[cfg(target_arch = "aarch64")]`.
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use std::hint::black_box;
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use edgevec::quantization::simd::portable::hamming_distance_slice as portable_hamming;
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
 #[cfg(target_arch = "aarch64")]

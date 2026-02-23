@@ -10,7 +10,7 @@ use edgevec::hnsw::{HnswConfig, HnswIndex};
 use edgevec::metadata::MetadataValue;
 use edgevec::storage::VectorStorage;
 use rand::rngs::StdRng;
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 
 /// Test that replicates WASM demo flow exactly.
 #[test]

@@ -128,7 +128,7 @@ fn test_search_dimension_mismatch() {
 // Deterministic randomized test to ensure coverage on Windows where fuzzing is disabled.
 #[test]
 fn test_mock_fuzz_proxy() {
-    use rand::{Rng, RngExt, SeedableRng};
+    use rand::{RngExt, SeedableRng};
     use rand_chacha::ChaCha8Rng;
 
     let mut rng = ChaCha8Rng::seed_from_u64(42);

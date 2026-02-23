@@ -36,11 +36,12 @@
 //! TOMBSTONE_BENCH_FULL=1 cargo bench --bench tombstone_bench
 //! ```
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, SamplingMode};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, SamplingMode};
 use edgevec::hnsw::{HnswConfig, HnswIndex, VectorId};
 use edgevec::storage::VectorStorage;
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
+use std::hint::black_box;
 use std::time::{Duration, Instant};
 
 /// Fixed seed for reproducibility (per spec)

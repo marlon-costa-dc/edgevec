@@ -23,7 +23,7 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use edgevec::hnsw::{HnswConfig, HnswIndex};
 use edgevec::storage::VectorStorage;
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::collections::HashSet;
 

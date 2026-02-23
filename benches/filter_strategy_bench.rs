@@ -35,12 +35,13 @@
 //! - **Hybrid** (0.05 ≤ selectivity ≤ 0.80): Oversample by 1/selectivity, search
 //!   more neighbors than needed, then filter the results.
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use edgevec::filter::strategy::{
     calculate_oversample, is_contradiction, is_tautology, select_strategy, FilterStrategy,
     POSTFILTER_THRESHOLD, PREFILTER_THRESHOLD,
 };
 use edgevec::filter::{parse, FilterExpr};
+use std::hint::black_box;
 
 /// Benchmark: Strategy selection overhead
 ///

@@ -3,7 +3,7 @@ use edgevec::hnsw::{HnswConfig, HnswIndex};
 use edgevec::persistence::storage::MemoryBackend;
 use edgevec::persistence::{read_snapshot, write_snapshot};
 use edgevec::storage::VectorStorage;
-use rand::{Rng, RngExt};
+use rand::RngExt;
 
 fn generate_vectors(count: usize, dim: usize) -> Vec<Vec<f32>> {
     let mut rng = rand::rng();

@@ -134,7 +134,7 @@ fn run_synthetic_benchmark(use_sq8: bool) {
     println!("Recall metrics are only meaningful with real datasets (SIFT, GloVe).\n");
 
     // Generate random vectors
-    use rand::{Rng, RngExt};
+    use rand::RngExt;
     let mut rng = rand::rng();
 
     let base_vectors: Vec<Vec<f32>> = (0..SYNTHETIC_BASE_COUNT)

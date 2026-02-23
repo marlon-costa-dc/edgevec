@@ -4,11 +4,12 @@
 //!
 //! Run with: `cargo bench --bench delete_bench`
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use edgevec::hnsw::{HnswConfig, HnswIndex, VectorId};
 use edgevec::storage::VectorStorage;
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
+use std::hint::black_box;
 
 /// Generates deterministic test vectors.
 fn generate_vectors(count: usize, dims: usize, seed: u64) -> Vec<Vec<f32>> {

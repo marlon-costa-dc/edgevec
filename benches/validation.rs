@@ -29,13 +29,14 @@
 //! - P99 latency in nanoseconds
 //! - Threshold multiplier for regression detection (default: 1.1 = 10%)
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, SamplingMode};
+use criterion::{criterion_group, criterion_main, Criterion, SamplingMode};
 use edgevec::hnsw::{HnswConfig, HnswIndex, SearchContext};
 use edgevec::quantization::binary::QuantizedVector;
 use edgevec::quantization::ScalarQuantizer;
 use edgevec::storage::VectorStorage;
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
+use std::hint::black_box;
 use std::time::Duration;
 
 // =============================================================================
