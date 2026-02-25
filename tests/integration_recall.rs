@@ -2,7 +2,7 @@ use edgevec::hnsw::{HnswConfig, HnswIndex};
 use edgevec::metric::{L2Squared, Metric};
 use edgevec::storage::VectorStorage;
 use rand::rngs::StdRng;
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 
 #[test]
 fn test_integration_recall_001() {

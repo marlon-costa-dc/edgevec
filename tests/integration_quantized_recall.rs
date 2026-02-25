@@ -4,7 +4,7 @@ use edgevec::metric::Metric;
 use edgevec::quantization::QuantizerConfig;
 use edgevec::storage::{StorageType, VectorStorage};
 use rand::rngs::StdRng;
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use std::time::Instant;
 
 /// Verification Test for Quantized Index Recall (W6D30)

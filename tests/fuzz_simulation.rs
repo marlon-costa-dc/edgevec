@@ -1,7 +1,7 @@
 use edgevec::hnsw::VectorId;
 use edgevec::wasm::EdgeVec;
 use edgevec::{HnswConfig, HnswIndex, VectorStorage};
-use rand::{Rng, RngExt, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use std::time::{Duration, Instant};
 
 // Mock Op for Graph Ops

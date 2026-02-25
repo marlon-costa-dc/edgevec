@@ -599,7 +599,6 @@ pub fn estimate_selectivity<M: MetadataStore>(
     } else {
         let mut sys = rand::rng();
         ChaCha8Rng::from_rng(&mut sys)
-    }
     };
 
     let mut indices: Vec<usize> = (0..total_vectors).collect();
