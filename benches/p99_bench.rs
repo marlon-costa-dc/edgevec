@@ -31,7 +31,7 @@ use criterion::{criterion_group, criterion_main, Criterion, SamplingMode};
 use std::hint::black_box;
 use edgevec::hnsw::{HnswConfig, HnswIndex};
 use edgevec::storage::VectorStorage;
-use rand::{Rng, SeedableRng};
+use rand::{Rng, RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
 
@@ -62,7 +62,7 @@ const SEARCH_K: usize = 10;
 fn generate_vectors(count: usize, dims: u32, seed: u64) -> Vec<Vec<f32>> {
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
     (0..count)
-        .map(|_| (0..dims).map(|_| rng.gen_range(-1.0..1.0)).collect())
+        .map(|_| (0..dims).map(|_| rng.random_range(-1.0..1.0)).collect())
         .collect()
 }
 

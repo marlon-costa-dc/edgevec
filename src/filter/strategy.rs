@@ -597,7 +597,9 @@ pub fn estimate_selectivity<M: MetadataStore>(
     let mut rng = if let Some(s) = seed {
         ChaCha8Rng::seed_from_u64(s)
     } else {
-        ChaCha8Rng::from_entropy()
+        let mut sys = rand::rng();
+        ChaCha8Rng::from_rng(&mut sys)
+    }
     };
 
     let mut indices: Vec<usize> = (0..total_vectors).collect();

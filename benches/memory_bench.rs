@@ -12,7 +12,7 @@ use std::hint::black_box;
 use edgevec::hnsw::HnswConfig;
 use edgevec::quantization::QuantizerConfig;
 use edgevec::storage::{StorageType, VectorStorage};
-use rand::{Rng, SeedableRng};
+use rand::{Rng, RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
 fn bench_storage_memory(c: &mut Criterion) {
@@ -33,7 +33,7 @@ fn bench_storage_memory(c: &mut Criterion) {
             // Run once
             let mut rng = ChaCha8Rng::seed_from_u64(42);
             let vectors: Vec<Vec<f32>> = (0..count)
-                .map(|_| (0..dims).map(|_| rng.gen_range(-1.0..1.0)).collect())
+                .map(|_| (0..dims).map(|_| rng.random_range(-1.0..1.0)).collect())
                 .collect();
 
             // 1. Float32 Storage

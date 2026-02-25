@@ -21,13 +21,13 @@ use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Through
 use std::hint::black_box;
 use edgevec::hnsw::{HnswConfig, HnswIndex};
 use edgevec::storage::VectorStorage;
-use rand::{Rng, SeedableRng};
+use rand::{Rng, RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
 /// Generate a random f32 vector with values in [-1, 1].
 fn generate_vector(dims: usize, seed: u64) -> Vec<f32> {
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
-    (0..dims).map(|_| rng.gen_range(-1.0..1.0)).collect()
+    (0..dims).map(|_| rng.random_range(-1.0..1.0)).collect()
 }
 
 /// Create a BQ-enabled index with n random vectors.
@@ -43,7 +43,7 @@ fn create_bq_index(n: usize, dims: u32, seed: u64) -> (HnswIndex, VectorStorage)
 
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
     for _ in 0..n {
-        let v: Vec<f32> = (0..dims).map(|_| rng.gen_range(-1.0..1.0)).collect();
+        let v: Vec<f32> = (0..dims).map(|_| rng.random_range(-1.0..1.0)).collect();
         index.insert_bq(&v, &mut storage).expect("Insert failed");
     }
 
