@@ -113,46 +113,51 @@ pub fn hamming_distance_slice(a: &[u8], b: &[u8]) -> u32 {
 /// - Tail processing uses safe Rust indexing with bounds checking
 #[inline]
 #[target_feature(enable = "neon")]
+#[allow(clippy::multiple_unsafe_ops_per_block)]
 unsafe fn hamming_distance_neon_unchecked(a: &[u8], b: &[u8]) -> u32 {
-    debug_assert_eq!(a.len(), b.len(), "Slices must have equal length");
+    // SAFETY: All operations in this unsafe fn require unsafe context.
+    // Caller must ensure required CPU features are available.
+    unsafe {
+        debug_assert_eq!(a.len(), b.len(), "Slices must have equal length");
 
-    let len = a.len();
-    let chunks = len / 16;
-    let mut count: u64 = 0;
+        let len = a.len();
+        let chunks = len / 16;
+        let mut count: u64 = 0;
 
-    // Process 16 bytes at a time using NEON
-    for i in 0..chunks {
-        let offset = i * 16;
+        // Process 16 bytes at a time using NEON
+        for i in 0..chunks {
+            let offset = i * 16;
 
-        // SAFETY: offset + 16 <= len is guaranteed by chunks = len / 16
-        // We're reading 16 bytes starting at offset, which is within bounds.
-        let va = vld1q_u8(a.as_ptr().add(offset));
-        let vb = vld1q_u8(b.as_ptr().add(offset));
+            // SAFETY: offset + 16 <= len is guaranteed by chunks = len / 16
+            // We're reading 16 bytes starting at offset, which is within bounds.
+            let va = vld1q_u8(a.as_ptr().add(offset));
+            let vb = vld1q_u8(b.as_ptr().add(offset));
 
-        // XOR to find differing bits
-        let xor = veorq_u8(va, vb);
+            // XOR to find differing bits
+            let xor = veorq_u8(va, vb);
 
-        // Count bits in each byte (vcntq_u8 returns popcount per byte)
-        let bit_counts = vcntq_u8(xor);
+            // Count bits in each byte (vcntq_u8 returns popcount per byte)
+            let bit_counts = vcntq_u8(xor);
 
-        // Sum all 16 byte counts into a single value
-        // vaddlvq_u8 performs unsigned horizontal add across vector
-        count += u64::from(vaddlvq_u8(bit_counts));
+            // Sum all 16 byte counts into a single value
+            // vaddlvq_u8 performs unsigned horizontal add across vector
+            count += u64::from(vaddlvq_u8(bit_counts));
+        }
+
+        // Handle remaining bytes (0-15 bytes) with scalar operations
+        let tail_start = chunks * 16;
+        for i in tail_start..len {
+            // SAFETY: i < len is guaranteed by the loop bounds
+            count += u64::from((a[i] ^ b[i]).count_ones());
+        }
+
+        // Result fits in u32: max is len * 8 bits.
+        // For slices up to 512MB (reasonable max), count <= 4 billion < u32::MAX
+        // Using saturating conversion for safety (clippy::cast_possible_truncation)
+        #[allow(clippy::cast_possible_truncation)]
+        let result = count as u32;
+        result
     }
-
-    // Handle remaining bytes (0-15 bytes) with scalar operations
-    let tail_start = chunks * 16;
-    for i in tail_start..len {
-        // SAFETY: i < len is guaranteed by the loop bounds
-        count += u64::from((a[i] ^ b[i]).count_ones());
-    }
-
-    // Result fits in u32: max is len * 8 bits.
-    // For slices up to 512MB (reasonable max), count <= 4 billion < u32::MAX
-    // Using saturating conversion for safety (clippy::cast_possible_truncation)
-    #[allow(clippy::cast_possible_truncation)]
-    let result = count as u32;
-    result
 }
 
 /// NEON-optimized Hamming distance for fixed 96-byte vectors.
@@ -279,42 +284,47 @@ pub fn dot_product(a: &[f32], b: &[f32]) -> f32 {
 /// - Tail processing uses safe Rust indexing with bounds checking
 #[inline]
 #[target_feature(enable = "neon")]
+#[allow(clippy::multiple_unsafe_ops_per_block)]
 unsafe fn dot_product_neon_unchecked(a: &[f32], b: &[f32]) -> f32 {
-    debug_assert_eq!(a.len(), b.len(), "Slices must have equal length");
+    // SAFETY: All operations in this unsafe fn require unsafe context.
+    // Caller must ensure required CPU features are available.
+    unsafe {
+        debug_assert_eq!(a.len(), b.len(), "Slices must have equal length");
 
-    let len = a.len();
-    let chunks = len / 4;
+        let len = a.len();
+        let chunks = len / 4;
 
-    // Initialize accumulator to zero vector
-    // SAFETY: vdupq_n_f32 is safe - just creates a vector of zeros
-    let mut sum = vdupq_n_f32(0.0);
+        // Initialize accumulator to zero vector
+        // SAFETY: vdupq_n_f32 is safe - just creates a vector of zeros
+        let mut sum = vdupq_n_f32(0.0);
 
-    // Process 4 floats at a time using NEON
-    for i in 0..chunks {
-        let offset = i * 4;
+        // Process 4 floats at a time using NEON
+        for i in 0..chunks {
+            let offset = i * 4;
 
-        // SAFETY: offset + 4 <= len is guaranteed by chunks = len / 4
-        // We're reading 4 floats (16 bytes) starting at offset, which is within bounds.
-        let va = vld1q_f32(a.as_ptr().add(offset));
-        let vb = vld1q_f32(b.as_ptr().add(offset));
+            // SAFETY: offset + 4 <= len is guaranteed by chunks = len / 4
+            // We're reading 4 floats (16 bytes) starting at offset, which is within bounds.
+            let va = vld1q_f32(a.as_ptr().add(offset));
+            let vb = vld1q_f32(b.as_ptr().add(offset));
 
-        // Fused multiply-add: sum = sum + (va * vb)
-        // vfmaq_f32 is more accurate than vmulq_f32 + vaddq_f32
-        sum = vfmaq_f32(sum, va, vb);
+            // Fused multiply-add: sum = sum + (va * vb)
+            // vfmaq_f32 is more accurate than vmulq_f32 + vaddq_f32
+            sum = vfmaq_f32(sum, va, vb);
+        }
+
+        // Horizontal sum of the accumulator vector
+        // vaddvq_f32 adds all 4 lanes together
+        let mut result = vaddvq_f32(sum);
+
+        // Handle remaining elements (0-3 floats) with scalar operations
+        let tail_start = chunks * 4;
+        for i in tail_start..len {
+            // SAFETY: i < len is guaranteed by the loop bounds
+            result += a[i] * b[i];
+        }
+
+        result
     }
-
-    // Horizontal sum of the accumulator vector
-    // vaddvq_f32 adds all 4 lanes together
-    let mut result = vaddvq_f32(sum);
-
-    // Handle remaining elements (0-3 floats) with scalar operations
-    let tail_start = chunks * 4;
-    for i in tail_start..len {
-        // SAFETY: i < len is guaranteed by the loop bounds
-        result += a[i] * b[i];
-    }
-
-    result
 }
 
 /// Portable dot product reference implementation.
@@ -413,48 +423,53 @@ pub fn euclidean_distance(a: &[f32], b: &[f32]) -> f32 {
 /// - Tail processing uses safe Rust indexing with bounds checking
 #[inline]
 #[target_feature(enable = "neon")]
+#[allow(clippy::multiple_unsafe_ops_per_block)]
 unsafe fn euclidean_distance_neon_unchecked(a: &[f32], b: &[f32]) -> f32 {
-    debug_assert_eq!(a.len(), b.len(), "Slices must have equal length");
+    // SAFETY: All operations in this unsafe fn require unsafe context.
+    // Caller must ensure required CPU features are available.
+    unsafe {
+        debug_assert_eq!(a.len(), b.len(), "Slices must have equal length");
 
-    let len = a.len();
-    let chunks = len / 4;
+        let len = a.len();
+        let chunks = len / 4;
 
-    // Initialize accumulator for squared differences
-    // SAFETY: vdupq_n_f32 is safe - just creates a vector of zeros
-    let mut sum_sq = vdupq_n_f32(0.0);
+        // Initialize accumulator for squared differences
+        // SAFETY: vdupq_n_f32 is safe - just creates a vector of zeros
+        let mut sum_sq = vdupq_n_f32(0.0);
 
-    // Process 4 floats at a time using NEON
-    for i in 0..chunks {
-        let offset = i * 4;
+        // Process 4 floats at a time using NEON
+        for i in 0..chunks {
+            let offset = i * 4;
 
-        // SAFETY: offset + 4 <= len is guaranteed by chunks = len / 4
-        // We're reading 4 floats (16 bytes) starting at offset, which is within bounds.
-        let va = vld1q_f32(a.as_ptr().add(offset));
-        let vb = vld1q_f32(b.as_ptr().add(offset));
+            // SAFETY: offset + 4 <= len is guaranteed by chunks = len / 4
+            // We're reading 4 floats (16 bytes) starting at offset, which is within bounds.
+            let va = vld1q_f32(a.as_ptr().add(offset));
+            let vb = vld1q_f32(b.as_ptr().add(offset));
 
-        // Compute difference: diff = a - b
-        let diff = vsubq_f32(va, vb);
+            // Compute difference: diff = a - b
+            let diff = vsubq_f32(va, vb);
 
-        // Square and accumulate: sum_sq = sum_sq + (diff * diff)
-        // vfmaq_f32 is more accurate than vmulq_f32 + vaddq_f32
-        sum_sq = vfmaq_f32(sum_sq, diff, diff);
+            // Square and accumulate: sum_sq = sum_sq + (diff * diff)
+            // vfmaq_f32 is more accurate than vmulq_f32 + vaddq_f32
+            sum_sq = vfmaq_f32(sum_sq, diff, diff);
+        }
+
+        // Horizontal sum of the accumulator vector
+        // vaddvq_f32 adds all 4 lanes together
+        let mut result = vaddvq_f32(sum_sq);
+
+        // Handle remaining elements (0-3 floats) with scalar operations
+        let tail_start = chunks * 4;
+        for i in tail_start..len {
+            // SAFETY: i < len is guaranteed by the loop bounds
+            let diff = a[i] - b[i];
+            result += diff * diff;
+        }
+
+        // Use standard library sqrt for accuracy
+        // (not NEON vrsqrteq_f32 which is just an estimate)
+        result.sqrt()
     }
-
-    // Horizontal sum of the accumulator vector
-    // vaddvq_f32 adds all 4 lanes together
-    let mut result = vaddvq_f32(sum_sq);
-
-    // Handle remaining elements (0-3 floats) with scalar operations
-    let tail_start = chunks * 4;
-    for i in tail_start..len {
-        // SAFETY: i < len is guaranteed by the loop bounds
-        let diff = a[i] - b[i];
-        result += diff * diff;
-    }
-
-    // Use standard library sqrt for accuracy
-    // (not NEON vrsqrteq_f32 which is just an estimate)
-    result.sqrt()
 }
 
 /// Portable Euclidean distance reference implementation.

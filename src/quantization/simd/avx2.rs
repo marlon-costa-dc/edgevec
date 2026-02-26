@@ -64,35 +64,40 @@ use std::arch::x86_64::{__m256i, _mm256_extract_epi64, _mm256_loadu_si256, _mm25
 #[target_feature(enable = "avx2")]
 #[cfg(target_arch = "x86_64")]
 #[allow(clippy::cast_ptr_alignment)] // _mm256_loadu_si256 is designed for unaligned access
+#[allow(clippy::multiple_unsafe_ops_per_block)]
 pub(crate) unsafe fn hamming_distance_avx2(a: &[u8; 96], b: &[u8; 96]) -> u32 {
-    // SAFETY: Caller verified AVX2 is available.
-    // Array size (96 bytes) allows loads at offsets 0, 32, 64.
-    // QuantizedVector guarantees 64-byte alignment, which exceeds AVX2's 32-byte requirement.
+    // SAFETY: All operations in this unsafe fn require unsafe context.
+    // Caller must ensure required CPU features are available.
+    unsafe {
+        // SAFETY: Caller verified AVX2 is available.
+        // Array size (96 bytes) allows loads at offsets 0, 32, 64.
+        // QuantizedVector guarantees 64-byte alignment, which exceeds AVX2's 32-byte requirement.
 
-    // Load 96 bytes in 3 × 256-bit registers
-    // Using _mm256_loadu_si256 (unaligned load) for safety,
-    // though QuantizedVector is 64-byte aligned
-    let a0 = _mm256_loadu_si256(a.as_ptr().cast::<__m256i>());
-    let a1 = _mm256_loadu_si256(a.as_ptr().add(32).cast::<__m256i>());
-    let a2 = _mm256_loadu_si256(a.as_ptr().add(64).cast::<__m256i>());
+        // Load 96 bytes in 3 × 256-bit registers
+        // Using _mm256_loadu_si256 (unaligned load) for safety,
+        // though QuantizedVector is 64-byte aligned
+        let a0 = _mm256_loadu_si256(a.as_ptr().cast::<__m256i>());
+        let a1 = _mm256_loadu_si256(a.as_ptr().add(32).cast::<__m256i>());
+        let a2 = _mm256_loadu_si256(a.as_ptr().add(64).cast::<__m256i>());
 
-    let b0 = _mm256_loadu_si256(b.as_ptr().cast::<__m256i>());
-    let b1 = _mm256_loadu_si256(b.as_ptr().add(32).cast::<__m256i>());
-    let b2 = _mm256_loadu_si256(b.as_ptr().add(64).cast::<__m256i>());
+        let b0 = _mm256_loadu_si256(b.as_ptr().cast::<__m256i>());
+        let b1 = _mm256_loadu_si256(b.as_ptr().add(32).cast::<__m256i>());
+        let b2 = _mm256_loadu_si256(b.as_ptr().add(64).cast::<__m256i>());
 
-    // XOR to find differing bits
-    let xor0 = _mm256_xor_si256(a0, b0);
-    let xor1 = _mm256_xor_si256(a1, b1);
-    let xor2 = _mm256_xor_si256(a2, b2);
+        // XOR to find differing bits
+        let xor0 = _mm256_xor_si256(a0, b0);
+        let xor1 = _mm256_xor_si256(a1, b1);
+        let xor2 = _mm256_xor_si256(a2, b2);
 
-    // Population count for each register
-    // AVX2 doesn't have native popcount, so we use lookup table method
-    let pop0 = popcount_avx2(xor0);
-    let pop1 = popcount_avx2(xor1);
-    let pop2 = popcount_avx2(xor2);
+        // Population count for each register
+        // AVX2 doesn't have native popcount, so we use lookup table method
+        let pop0 = popcount_avx2(xor0);
+        let pop1 = popcount_avx2(xor1);
+        let pop2 = popcount_avx2(xor2);
 
-    // Sum all popcounts
-    pop0 + pop1 + pop2
+        // Sum all popcounts
+        pop0 + pop1 + pop2
+    }
 }
 
 /// AVX2 population count using native popcnt instruction.
@@ -118,16 +123,21 @@ pub(crate) unsafe fn hamming_distance_avx2(a: &[u8; 96], b: &[u8; 96]) -> u32 {
 #[inline]
 #[cfg(target_arch = "x86_64")]
 #[allow(clippy::cast_sign_loss, clippy::many_single_char_names)]
+#[allow(clippy::multiple_unsafe_ops_per_block)]
 unsafe fn popcount_avx2(v: __m256i) -> u32 {
-    // Extract 4 × 64-bit values and use native popcnt instruction.
-    // count_ones() compiles to popcnt on x86_64 with hardware support.
-    // Variable names (a,b,c,d) are standard for lane extraction.
-    let a = _mm256_extract_epi64(v, 0) as u64;
-    let b = _mm256_extract_epi64(v, 1) as u64;
-    let c = _mm256_extract_epi64(v, 2) as u64;
-    let d = _mm256_extract_epi64(v, 3) as u64;
+    // SAFETY: All operations in this unsafe fn require unsafe context.
+    // Caller must ensure required CPU features are available.
+    unsafe {
+        // Extract 4 × 64-bit values and use native popcnt instruction.
+        // count_ones() compiles to popcnt on x86_64 with hardware support.
+        // Variable names (a,b,c,d) are standard for lane extraction.
+        let a = _mm256_extract_epi64(v, 0) as u64;
+        let b = _mm256_extract_epi64(v, 1) as u64;
+        let c = _mm256_extract_epi64(v, 2) as u64;
+        let d = _mm256_extract_epi64(v, 3) as u64;
 
-    a.count_ones() + b.count_ones() + c.count_ones() + d.count_ones()
+        a.count_ones() + b.count_ones() + c.count_ones() + d.count_ones()
+    }
 }
 
 #[cfg(test)]

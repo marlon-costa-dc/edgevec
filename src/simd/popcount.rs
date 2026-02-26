@@ -129,39 +129,44 @@ pub fn scalar_popcount_xor(a: &[u8], b: &[u8]) -> u32 {
     clippy::cast_sign_loss,
     clippy::cast_ptr_alignment
 )]
+#[allow(clippy::multiple_unsafe_ops_per_block)]
 unsafe fn avx2_popcount_xor(a: &[u8], b: &[u8]) -> u32 {
-    use std::arch::x86_64::{__m256i, _mm256_extract_epi64, _mm256_loadu_si256, _mm256_xor_si256};
+    // SAFETY: All operations in this unsafe fn require unsafe context.
+    // Caller must ensure required CPU features are available.
+    unsafe {
+        use std::arch::x86_64::{__m256i, _mm256_extract_epi64, _mm256_loadu_si256, _mm256_xor_si256};
 
-    let mut total = 0u32;
-    let len = a.len();
+        let mut total = 0u32;
+        let len = a.len();
 
-    // Process 32 bytes at a time
-    let chunks = len / 32;
-    for i in 0..chunks {
-        let offset = i * 32;
-        let va = _mm256_loadu_si256(a.as_ptr().add(offset).cast::<__m256i>());
-        let vb = _mm256_loadu_si256(b.as_ptr().add(offset).cast::<__m256i>());
+        // Process 32 bytes at a time
+        let chunks = len / 32;
+        for i in 0..chunks {
+            let offset = i * 32;
+            let va = _mm256_loadu_si256(a.as_ptr().add(offset).cast::<__m256i>());
+            let vb = _mm256_loadu_si256(b.as_ptr().add(offset).cast::<__m256i>());
 
-        // XOR the vectors
-        let xor = _mm256_xor_si256(va, vb);
+            // XOR the vectors
+            let xor = _mm256_xor_si256(va, vb);
 
-        // Extract 4×u64 and use native popcnt instruction.
-        // count_ones() compiles to popcnt on x86_64 with hardware support.
-        let v0 = _mm256_extract_epi64(xor, 0) as u64;
-        let v1 = _mm256_extract_epi64(xor, 1) as u64;
-        let v2 = _mm256_extract_epi64(xor, 2) as u64;
-        let v3 = _mm256_extract_epi64(xor, 3) as u64;
+            // Extract 4×u64 and use native popcnt instruction.
+            // count_ones() compiles to popcnt on x86_64 with hardware support.
+            let v0 = _mm256_extract_epi64(xor, 0) as u64;
+            let v1 = _mm256_extract_epi64(xor, 1) as u64;
+            let v2 = _mm256_extract_epi64(xor, 2) as u64;
+            let v3 = _mm256_extract_epi64(xor, 3) as u64;
 
-        total += v0.count_ones() + v1.count_ones() + v2.count_ones() + v3.count_ones();
+            total += v0.count_ones() + v1.count_ones() + v2.count_ones() + v3.count_ones();
+        }
+
+        // Handle remainder with scalar
+        let remainder_start = chunks * 32;
+        for i in remainder_start..len {
+            total += (a[i] ^ b[i]).count_ones();
+        }
+
+        total
     }
-
-    // Handle remainder with scalar
-    let remainder_start = chunks * 32;
-    for i in remainder_start..len {
-        total += (a[i] ^ b[i]).count_ones();
-    }
-
-    total
 }
 
 /// x86_64 native popcnt implementation.
@@ -205,39 +210,44 @@ fn native_popcount_xor(a: &[u8], b: &[u8]) -> u32 {
 /// Uses `veorq_u8` for XOR and `vcntq_u8` for parallel popcount.
 #[cfg(target_arch = "aarch64")]
 #[target_feature(enable = "neon")]
+#[allow(clippy::multiple_unsafe_ops_per_block)]
 unsafe fn neon_popcount_xor(a: &[u8], b: &[u8]) -> u32 {
-    use std::arch::aarch64::*;
+    // SAFETY: All operations in this unsafe fn require unsafe context.
+    // Caller must ensure required CPU features are available.
+    unsafe {
+        use std::arch::aarch64::*;
 
-    let mut total = 0u32;
-    let len = a.len();
+        let mut total = 0u32;
+        let len = a.len();
 
-    // Process 16 bytes at a time
-    let chunks = len / 16;
-    for i in 0..chunks {
-        let offset = i * 16;
-        let va = vld1q_u8(a.as_ptr().add(offset));
-        let vb = vld1q_u8(b.as_ptr().add(offset));
+        // Process 16 bytes at a time
+        let chunks = len / 16;
+        for i in 0..chunks {
+            let offset = i * 16;
+            let va = vld1q_u8(a.as_ptr().add(offset));
+            let vb = vld1q_u8(b.as_ptr().add(offset));
 
-        // XOR and popcount
-        let xor = veorq_u8(va, vb);
-        let cnt = vcntq_u8(xor);
+            // XOR and popcount
+            let xor = veorq_u8(va, vb);
+            let cnt = vcntq_u8(xor);
 
-        // Horizontal sum: u8x16 -> u16x8 -> u32x4 -> u64x2
-        let sum16 = vpaddlq_u8(cnt);
-        let sum32 = vpaddlq_u16(sum16);
-        let sum64 = vpaddlq_u32(sum32);
+            // Horizontal sum: u8x16 -> u16x8 -> u32x4 -> u64x2
+            let sum16 = vpaddlq_u8(cnt);
+            let sum32 = vpaddlq_u16(sum16);
+            let sum64 = vpaddlq_u32(sum32);
 
-        // Extract and accumulate
-        total += (vgetq_lane_u64(sum64, 0) + vgetq_lane_u64(sum64, 1)) as u32;
+            // Extract and accumulate
+            total += (vgetq_lane_u64(sum64, 0) + vgetq_lane_u64(sum64, 1)) as u32;
+        }
+
+        // Handle remainder with scalar
+        let remainder_start = chunks * 16;
+        for i in remainder_start..len {
+            total += (a[i] ^ b[i]).count_ones();
+        }
+
+        total
     }
-
-    // Handle remainder with scalar
-    let remainder_start = chunks * 16;
-    for i in remainder_start..len {
-        total += (a[i] ^ b[i]).count_ones();
-    }
-
-    total
 }
 
 #[cfg(test)]
