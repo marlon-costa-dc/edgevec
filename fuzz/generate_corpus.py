@@ -13,7 +13,6 @@ Input Formats:
 """
 
 import struct
-import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent / "corpus"
@@ -48,6 +47,7 @@ def u8_bytes(value: int) -> bytes:
 # Format: [cmd: u8][vector: 4 x f32] repeated
 # cmd < 220 = INSERT (86%), cmd >= 220 = SEARCH (14%)
 # =============================================================================
+
 
 def generate_hnsw_insert_seeds():
     print("\nGenerating hnsw_insert seeds...")
@@ -89,7 +89,9 @@ def generate_hnsw_insert_seeds():
     write_seed("hnsw_insert", "06_alternating_ops", data)
 
     # Seed 7: Edge case - large values
-    large_vec = f32_bytes(1e30) + f32_bytes(-1e30) + f32_bytes(1e-30) + f32_bytes(-1e-30)
+    large_vec = (
+        f32_bytes(1e30) + f32_bytes(-1e30) + f32_bytes(1e-30) + f32_bytes(-1e-30)
+    )
     write_seed("hnsw_insert", "07_large_values", cmd_insert + large_vec)
 
     # Seed 8: Edge case - all same value
@@ -120,6 +122,7 @@ def generate_hnsw_insert_seeds():
 # Uses arbitrary::Unstructured - random bytes that get parsed
 # The target parses: dimensions, node_count, vectors, links, query, entry_points, ef
 # =============================================================================
+
 
 def generate_hnsw_search_seeds():
     print("\nGenerating hnsw_search seeds...")
@@ -177,6 +180,7 @@ def generate_hnsw_search_seeds():
 # Op enum: Insert { vector: Vec<f32> }, Delete { id: u64 }, Search { vector, k }, SaveLoad
 # =============================================================================
 
+
 def generate_graph_ops_seeds():
     print("\nGenerating graph_ops seeds...")
 
@@ -222,7 +226,14 @@ def generate_graph_ops_seeds():
     write_seed("graph_ops", "10_float_data", bytes([0]) + data * 5)
 
     # Seed 11: Delete with various IDs
-    data = bytes([1]) + u32_bytes(0) + bytes([1]) + u32_bytes(1) + bytes([1]) + u32_bytes(0xFFFFFFFF)
+    data = (
+        bytes([1])
+        + u32_bytes(0)
+        + bytes([1])
+        + u32_bytes(1)
+        + bytes([1])
+        + u32_bytes(0xFFFFFFFF)
+    )
     write_seed("graph_ops", "11_delete_ids", data * 3)
 
     # Seed 12: Search with k values
@@ -235,6 +246,7 @@ def generate_graph_ops_seeds():
 # Format: [entry_point: u32 (4 bytes)][query: N x f32]
 # Tests random entry points against a fixed small graph
 # =============================================================================
+
 
 def generate_search_robustness_seeds():
     print("\nGenerating search_robustness seeds...")

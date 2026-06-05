@@ -14,14 +14,13 @@ Seeds cover:
 - Edge cases (NaN, Inf, subnormal)
 """
 
-import struct
 import os
 import random
-import math
+import struct
+import sys
 
 CORPUS_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)),
-    "fuzz", "corpus", "fuzz_quantization"
+    os.path.dirname(os.path.dirname(__file__)), "fuzz", "corpus", "fuzz_quantization"
 )
 
 DIM = 768  # Binary quantization dimension
@@ -48,23 +47,35 @@ def generate_seeds() -> dict[str, bytes]:
     seeds["all_large_neg"] = f32_to_bytes([-1e38] * DIM)
 
     # === Alternating patterns ===
-    seeds["alt_pos_neg"] = f32_to_bytes([1.0 if i % 2 == 0 else -1.0 for i in range(DIM)])
-    seeds["alt_neg_pos"] = f32_to_bytes([-1.0 if i % 2 == 0 else 1.0 for i in range(DIM)])
-    seeds["alt_pos_zero"] = f32_to_bytes([1.0 if i % 2 == 0 else 0.0 for i in range(DIM)])
-    seeds["alt_neg_zero"] = f32_to_bytes([-1.0 if i % 2 == 0 else 0.0 for i in range(DIM)])
-    seeds["alt_4_pattern"] = f32_to_bytes([1.0 if i % 4 < 2 else -1.0 for i in range(DIM)])
-    seeds["alt_8_pattern"] = f32_to_bytes([1.0 if i % 8 < 4 else -1.0 for i in range(DIM)])
+    seeds["alt_pos_neg"] = f32_to_bytes(
+        [1.0 if i % 2 == 0 else -1.0 for i in range(DIM)]
+    )
+    seeds["alt_neg_pos"] = f32_to_bytes(
+        [-1.0 if i % 2 == 0 else 1.0 for i in range(DIM)]
+    )
+    seeds["alt_pos_zero"] = f32_to_bytes(
+        [1.0 if i % 2 == 0 else 0.0 for i in range(DIM)]
+    )
+    seeds["alt_neg_zero"] = f32_to_bytes(
+        [-1.0 if i % 2 == 0 else 0.0 for i in range(DIM)]
+    )
+    seeds["alt_4_pattern"] = f32_to_bytes(
+        [1.0 if i % 4 < 2 else -1.0 for i in range(DIM)]
+    )
+    seeds["alt_8_pattern"] = f32_to_bytes(
+        [1.0 if i % 8 < 4 else -1.0 for i in range(DIM)]
+    )
 
     # === Special float values ===
     # NaN
-    nan_bytes = struct.pack("<f", float('nan'))
+    nan_bytes = struct.pack("<f", float("nan"))
     seeds["all_nan"] = nan_bytes * DIM
     seeds["first_nan"] = nan_bytes + f32_to_bytes([1.0] * (DIM - 1))
     seeds["last_nan"] = f32_to_bytes([1.0] * (DIM - 1)) + nan_bytes
 
     # Infinity
-    inf_bytes = struct.pack("<f", float('inf'))
-    neg_inf_bytes = struct.pack("<f", float('-inf'))
+    inf_bytes = struct.pack("<f", float("inf"))
+    neg_inf_bytes = struct.pack("<f", float("-inf"))
     seeds["all_inf"] = inf_bytes * DIM
     seeds["all_neg_inf"] = neg_inf_bytes * DIM
     seeds["mixed_inf"] = (inf_bytes + neg_inf_bytes) * (DIM // 2)
@@ -72,7 +83,9 @@ def generate_seeds() -> dict[str, bytes]:
     # Negative zero
     neg_zero_bytes = struct.pack("<f", -0.0)
     seeds["all_neg_zero"] = neg_zero_bytes * DIM
-    seeds["mixed_zero_neg_zero"] = (struct.pack("<f", 0.0) + neg_zero_bytes) * (DIM // 2)
+    seeds["mixed_zero_neg_zero"] = (struct.pack("<f", 0.0) + neg_zero_bytes) * (
+        DIM // 2
+    )
 
     # Subnormal (denormalized) numbers
     subnormal = 1e-45  # Smallest positive subnormal f32
@@ -97,18 +110,20 @@ def generate_seeds() -> dict[str, bytes]:
     # Sparse vectors (mostly zeros)
     for i in range(10):
         sparsity = 0.9 + i * 0.01  # 90% to 99% zeros
-        seeds[f"sparse_{int(sparsity*100):02d}pct"] = f32_to_bytes([
-            random.uniform(-1.0, 1.0) if random.random() > sparsity else 0.0
-            for _ in range(DIM)
-        ])
+        seeds[f"sparse_{int(sparsity * 100):02d}pct"] = f32_to_bytes(
+            [
+                random.uniform(-1.0, 1.0) if random.random() > sparsity else 0.0
+                for _ in range(DIM)
+            ]
+        )
 
     # Clustered values (similar to real embeddings)
     for i in range(10):
         center = random.uniform(-0.5, 0.5)
         spread = 0.1 + i * 0.02
-        seeds[f"clustered_{i:02d}"] = f32_to_bytes([
-            center + random.gauss(0.0, spread) for _ in range(DIM)
-        ])
+        seeds[f"clustered_{i:02d}"] = f32_to_bytes(
+            [center + random.gauss(0.0, spread) for _ in range(DIM)]
+        )
 
     # === Boundary patterns ===
     # Single bit patterns
@@ -127,18 +142,24 @@ def generate_seeds() -> dict[str, bytes]:
         seeds[f"byte_aligned_{byte_idx:02d}"] = f32_to_bytes(vec)
 
     # Gradient vectors
-    seeds["gradient_linear"] = f32_to_bytes([
-        (i / DIM) * 2 - 1 for i in range(DIM)  # -1 to +1
-    ])
-    seeds["gradient_reverse"] = f32_to_bytes([
-        1 - (i / DIM) * 2 for i in range(DIM)  # +1 to -1
-    ])
+    seeds["gradient_linear"] = f32_to_bytes(
+        [
+            (i / DIM) * 2 - 1
+            for i in range(DIM)  # -1 to +1
+        ]
+    )
+    seeds["gradient_reverse"] = f32_to_bytes(
+        [
+            1 - (i / DIM) * 2
+            for i in range(DIM)  # +1 to -1
+        ]
+    )
 
     # Step functions
     for step_pos in [DIM // 4, DIM // 2, 3 * DIM // 4]:
-        seeds[f"step_at_{step_pos:03d}"] = f32_to_bytes([
-            -1.0 if i < step_pos else 1.0 for i in range(DIM)
-        ])
+        seeds[f"step_at_{step_pos:03d}"] = f32_to_bytes(
+            [-1.0 if i < step_pos else 1.0 for i in range(DIM)]
+        )
 
     # === Malformed data (may cause panics if not handled) ===
     # Very short data
@@ -156,21 +177,27 @@ def generate_seeds() -> dict[str, bytes]:
     # === Additional patterns to reach 100 ===
     # Power of 2 boundaries
     seeds["half_pos_half_neg"] = f32_to_bytes([1.0] * (DIM // 2) + [-1.0] * (DIM // 2))
-    seeds["thirds_pattern"] = f32_to_bytes([
-        1.0 if i < DIM // 3 else (-1.0 if i < 2 * DIM // 3 else 0.0)
-        for i in range(DIM)
-    ])
-    seeds["quarters_pattern"] = f32_to_bytes([
-        1.0 if i % 4 == 0 else (-1.0 if i % 4 == 1 else (0.5 if i % 4 == 2 else -0.5))
-        for i in range(DIM)
-    ])
+    seeds["thirds_pattern"] = f32_to_bytes(
+        [
+            1.0 if i < DIM // 3 else (-1.0 if i < 2 * DIM // 3 else 0.0)
+            for i in range(DIM)
+        ]
+    )
+    seeds["quarters_pattern"] = f32_to_bytes(
+        [
+            1.0
+            if i % 4 == 0
+            else (-1.0 if i % 4 == 1 else (0.5 if i % 4 == 2 else -0.5))
+            for i in range(DIM)
+        ]
+    )
 
     # Very small positive/negative values (near decision boundary)
     seeds["tiny_epsilon"] = f32_to_bytes([1e-7] * DIM)
     seeds["tiny_neg_epsilon"] = f32_to_bytes([-1e-7] * DIM)
-    seeds["alternating_epsilon"] = f32_to_bytes([
-        1e-7 if i % 2 == 0 else -1e-7 for i in range(DIM)
-    ])
+    seeds["alternating_epsilon"] = f32_to_bytes(
+        [1e-7 if i % 2 == 0 else -1e-7 for i in range(DIM)]
+    )
 
     return seeds
 
@@ -199,4 +226,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

@@ -88,6 +88,7 @@ BENCHMARK_GROUP: str = "validation"
 # UTILITY FUNCTIONS
 # =============================================================================
 
+
 def load_baselines(path: Path) -> dict[str, Any]:
     """Load baseline values from JSON file."""
     if not path.exists():
@@ -136,7 +137,9 @@ def extract_median_ns(estimates: dict[str, Any]) -> float | None:
     return None
 
 
-def extract_tail_ns(estimates: dict[str, Any], benchmark_name: str) -> tuple[float | None, bool]:
+def extract_tail_ns(
+    estimates: dict[str, Any], benchmark_name: str
+) -> tuple[float | None, bool]:
     """
     Extract tail latency estimate in nanoseconds from Criterion estimates.
 
@@ -156,7 +159,9 @@ def extract_tail_ns(estimates: dict[str, Any], benchmark_name: str) -> tuple[flo
 
             if mean_ns > 0 and std_dev_ns >= 0:
                 tail_estimate = mean_ns + (TAIL_STDDEV_MULTIPLIER * std_dev_ns)
-                print(f"  [{benchmark_name}] Tail estimated: mean({mean_ns:.0f}) + {TAIL_STDDEV_MULTIPLIER}*std_dev({std_dev_ns:.0f}) = {tail_estimate:.0f} ns")
+                print(
+                    f"  [{benchmark_name}] Tail estimated: mean({mean_ns:.0f}) + {TAIL_STDDEV_MULTIPLIER}*std_dev({std_dev_ns:.0f}) = {tail_estimate:.0f} ns"
+                )
                 return tail_estimate, True
 
     # Final fallback: use upper confidence bound
@@ -166,7 +171,9 @@ def extract_tail_ns(estimates: dict[str, Any], benchmark_name: str) -> tuple[flo
             ci = mean.get("confidence_interval", {})
             upper = ci.get("upper_bound")
             if upper:
-                print(f"  [{benchmark_name}] Tail fallback: using mean upper CI bound = {upper:.0f} ns")
+                print(
+                    f"  [{benchmark_name}] Tail fallback: using mean upper CI bound = {upper:.0f} ns"
+                )
                 return float(upper), True
 
     return None, False
@@ -201,6 +208,7 @@ def get_baseline_tail(config: dict[str, Any]) -> float:
 # =============================================================================
 # MAIN REGRESSION CHECK
 # =============================================================================
+
 
 def check_regression(
     baseline: dict[str, Any],
@@ -283,7 +291,9 @@ def check_regression(
 
         # Convert to target unit
         current_median = convert_ns_to_unit(current_median_ns, unit)
-        current_tail = convert_ns_to_unit(current_tail_ns, unit) if current_tail_ns else None
+        current_tail = (
+            convert_ns_to_unit(current_tail_ns, unit) if current_tail_ns else None
+        )
 
         # Initialize result
         result: dict[str, Any] = {
@@ -302,25 +312,31 @@ def check_regression(
             result["p50_ratio"] = p50_ratio
 
             if current_median > hard_limit:
-                result["checks"].append({
-                    "name": "P50 Hard Limit",
-                    "passed": False,
-                    "reason": f"Exceeds hard limit ({current_median:.2f} > {hard_limit:.2f} {unit})"
-                })
+                result["checks"].append(
+                    {
+                        "name": "P50 Hard Limit",
+                        "passed": False,
+                        "reason": f"Exceeds hard limit ({current_median:.2f} > {hard_limit:.2f} {unit})",
+                    }
+                )
                 all_passed = False
             elif p50_ratio > threshold:
-                result["checks"].append({
-                    "name": "P50 Regression",
-                    "passed": False,
-                    "reason": f"P50 {p50_ratio:.1%} of baseline (threshold: {threshold:.0%})"
-                })
+                result["checks"].append(
+                    {
+                        "name": "P50 Regression",
+                        "passed": False,
+                        "reason": f"P50 {p50_ratio:.1%} of baseline (threshold: {threshold:.0%})",
+                    }
+                )
                 all_passed = False
             else:
-                result["checks"].append({
-                    "name": "P50 Regression",
-                    "passed": True,
-                    "reason": f"P50 {p50_ratio:.1%} of baseline"
-                })
+                result["checks"].append(
+                    {
+                        "name": "P50 Regression",
+                        "passed": True,
+                        "reason": f"P50 {p50_ratio:.1%} of baseline",
+                    }
+                )
 
         # Check 2: Tail regression
         if current_tail is not None and baseline_tail > 0:
@@ -328,18 +344,22 @@ def check_regression(
             result["tail_ratio"] = tail_ratio
 
             if tail_ratio > TAIL_REGRESSION_THRESHOLD:
-                result["checks"].append({
-                    "name": "Tail Regression",
-                    "passed": False,
-                    "reason": f"Tail {tail_ratio:.1%} of baseline (threshold: {TAIL_REGRESSION_THRESHOLD:.0%})"
-                })
+                result["checks"].append(
+                    {
+                        "name": "Tail Regression",
+                        "passed": False,
+                        "reason": f"Tail {tail_ratio:.1%} of baseline (threshold: {TAIL_REGRESSION_THRESHOLD:.0%})",
+                    }
+                )
                 all_passed = False
             else:
-                result["checks"].append({
-                    "name": "Tail Regression",
-                    "passed": True,
-                    "reason": f"Tail {tail_ratio:.1%} of baseline"
-                })
+                result["checks"].append(
+                    {
+                        "name": "Tail Regression",
+                        "passed": True,
+                        "reason": f"Tail {tail_ratio:.1%} of baseline",
+                    }
+                )
 
         # Check 3: Tail/P50 ratio sanity check
         if current_tail is not None and current_median > 0:
@@ -347,23 +367,31 @@ def check_regression(
             result["tail_p50_ratio"] = tail_p50_ratio
 
             if tail_p50_ratio > TAIL_MEDIAN_RATIO_MAX:
-                result["checks"].append({
-                    "name": "Tail/P50 Ratio",
-                    "passed": False,
-                    "reason": f"Tail/P50 ratio {tail_p50_ratio:.2f}x exceeds {TAIL_MEDIAN_RATIO_MAX}x limit"
-                })
+                result["checks"].append(
+                    {
+                        "name": "Tail/P50 Ratio",
+                        "passed": False,
+                        "reason": f"Tail/P50 ratio {tail_p50_ratio:.2f}x exceeds {TAIL_MEDIAN_RATIO_MAX}x limit",
+                    }
+                )
                 all_passed = False
             else:
-                result["checks"].append({
-                    "name": "Tail/P50 Ratio",
-                    "passed": True,
-                    "reason": f"Tail/P50 ratio {tail_p50_ratio:.2f}x (OK)"
-                })
+                result["checks"].append(
+                    {
+                        "name": "Tail/P50 Ratio",
+                        "passed": True,
+                        "reason": f"Tail/P50 ratio {tail_p50_ratio:.2f}x (OK)",
+                    }
+                )
 
         # Determine overall status
         failed_checks = [c for c in result["checks"] if not c["passed"]]
         if failed_checks:
-            result["status"] = "REGRESSION" if any("Regression" in c["name"] for c in failed_checks) else "FAIL"
+            result["status"] = (
+                "REGRESSION"
+                if any("Regression" in c["name"] for c in failed_checks)
+                else "FAIL"
+            )
             result["reason"] = "; ".join(c["reason"] for c in failed_checks)
         else:
             result["status"] = "PASS"
@@ -378,12 +406,15 @@ def check_regression(
 # OUTPUT FORMATTERS
 # =============================================================================
 
+
 def print_results(results: dict[str, Any]) -> None:
     """Print results in a formatted table."""
     print("\n" + "=" * 80)
     print("BENCHMARK VALIDATION RESULTS (W18.3 v1.3: Calibrated Baselines)")
     print("=" * 80)
-    print(f"Tail estimate: mean + {TAIL_STDDEV_MULTIPLIER}*std_dev (conservative bound)")
+    print(
+        f"Tail estimate: mean + {TAIL_STDDEV_MULTIPLIER}*std_dev (conservative bound)"
+    )
     print(f"Tail/P50 ratio max: {TAIL_MEDIAN_RATIO_MAX}x")
     print("=" * 80)
 
@@ -402,15 +433,21 @@ def print_results(results: dict[str, Any]) -> None:
         tail_estimated = data.get("tail_estimated", False)
 
         # Status indicator
-        indicator = {"PASS": "[PASS]", "REGRESSION": "[REGR]", "FAIL": "[FAIL]"}.get(status, "[????]")
+        indicator = {"PASS": "[PASS]", "REGRESSION": "[REGR]", "FAIL": "[FAIL]"}.get(
+            status, "[????]"
+        )
 
         print(f"\n{indicator} {name}")
-        print(f"    P50:  {current_p50:.2f} {unit} (baseline: {baseline_p50:.2f} {unit})")
+        print(
+            f"    P50:  {current_p50:.2f} {unit} (baseline: {baseline_p50:.2f} {unit})"
+        )
         if current_tail is not None:
             est_marker = " (estimated)" if tail_estimated else ""
-            print(f"    Tail: {current_tail:.2f} {unit} (baseline: {baseline_tail:.2f} {unit}){est_marker}")
+            print(
+                f"    Tail: {current_tail:.2f} {unit} (baseline: {baseline_tail:.2f} {unit}){est_marker}"
+            )
             if current_p50 > 0:
-                print(f"    Tail/P50 Ratio: {current_tail/current_p50:.2f}x")
+                print(f"    Tail/P50 Ratio: {current_tail / current_p50:.2f}x")
 
         # Print check details
         for check in data.get("checks", []):
@@ -430,8 +467,12 @@ def generate_pr_comment(results: dict[str, Any], passed: bool) -> str:
         lines.append("**Regression detected!** See details below.\n")
 
     # Summary table with tail
-    lines.append("| Benchmark | P50 | Tail | P50 vs Baseline | Tail vs Baseline | Status |")
-    lines.append("|:----------|----:|-----:|----------------:|-----------------:|:-------|")
+    lines.append(
+        "| Benchmark | P50 | Tail | P50 vs Baseline | Tail vs Baseline | Status |"
+    )
+    lines.append(
+        "|:----------|----:|-----:|----------------:|-----------------:|:-------|"
+    )
 
     for name, data in results.items():
         status = data.get("status", "SKIP")
@@ -450,15 +491,21 @@ def generate_pr_comment(results: dict[str, Any], passed: bool) -> str:
         p50_ratio_str = f"{p50_ratio:.0%}" if p50_ratio else "-"
         tail_ratio_str = f"{tail_ratio:.0%}" if tail_ratio else "-"
 
-        status_icon = {"PASS": "OK", "REGRESSION": "REGR", "FAIL": "FAIL"}.get(status, "??")
+        status_icon = {"PASS": "OK", "REGRESSION": "REGR", "FAIL": "FAIL"}.get(
+            status, "??"
+        )
 
-        lines.append(f"| {name} | {p50_str} | {tail_str} | {p50_ratio_str} | {tail_ratio_str} | {status_icon} |")
+        lines.append(
+            f"| {name} | {p50_str} | {tail_str} | {p50_ratio_str} | {tail_ratio_str} | {status_icon} |"
+        )
 
     lines.append("\n### Thresholds")
     lines.append(f"- P50 regression: >{P50_REGRESSION_THRESHOLD:.0%} of baseline")
     lines.append(f"- Tail regression: >{TAIL_REGRESSION_THRESHOLD:.0%} of baseline")
     lines.append(f"- Tail/P50 ratio: <{TAIL_MEDIAN_RATIO_MAX}x")
-    lines.append(f"\n*Tail estimated as mean + {TAIL_STDDEV_MULTIPLIER}*std_dev (conservative bound)*")
+    lines.append(
+        f"\n*Tail estimated as mean + {TAIL_STDDEV_MULTIPLIER}*std_dev (conservative bound)*"
+    )
 
     return "\n".join(lines)
 
@@ -467,8 +514,11 @@ def generate_pr_comment(results: dict[str, Any], passed: bool) -> str:
 # MAIN ENTRY POINT
 # =============================================================================
 
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Check for benchmark regressions (P50 and Tail)")
+    parser = argparse.ArgumentParser(
+        description="Check for benchmark regressions (P50 and Tail)"
+    )
     parser.add_argument(
         "--baseline",
         type=Path,
