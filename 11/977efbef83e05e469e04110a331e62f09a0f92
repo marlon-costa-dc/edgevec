@@ -1,0 +1,127 @@
+benches/batch_vs_sequential.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 29,35
+benches/bq_recall.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 29
+tests/codex_review_fixes.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 56,214
+benches/insert_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 17
+Cargo.toml
+  s_f1e46703a06425::t_f36bc6c6169d41 15
+benches/distance_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 16
+fuzz/fuzz_targets/flat_index/target.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 1-49
+benches/storage_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 10
+benches/quant_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 5
+benches/bench_quantization.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 9
+src/hybrid/fusion.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 141,143,145-149,1048,1066-1071,1076-1081
+fuzz/Cargo.toml
+  s_f1e46703a06425::t_f36bc6c6169d41 22,100-119
+benches/p99_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 35
+benches/sparse_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 11
+benches/sparse_storage_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 12
+benches/simd_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 24
+benches/bq_popcount.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 26
+fuzz/fuzz_targets/sparse_vector/target.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 1-71
+src/flat/mod.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 73-81,504-610
+src/hybrid/search.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 10,19,22,25,28,75,143-158,424-427,518
+src/persistence/wal.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 108-110,114,121
+src/sparse/error.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 75-78,140-144
+src/sparse/storage.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 38,59-64,525,527,1118-1119,1121,1146,1170,1180-1181,1219-1225,1270,1276,1283-1305,1340,1411-1415,1417,2308,2378,2398-2399,2866-2928
+tests/hybrid_recall_test.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 210
+src/persistence/snapshot.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 146-147
+tests/hybrid_search_test.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 1-330
+benches/batch_delete_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 10
+benches/filter_strategy_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 44
+src/hnsw/graph.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 962-963,966
+tests/integration_binary.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 114
+benches/delete_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 12
+benches/tombstone_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 44
+CHANGELOG.md
+  s_f1e46703a06425::t_f36bc6c6169d41 10-33,991-992,1019-1021
+tests/binary_flat_index_integration.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 1-189
+README.md
+  s_f1e46703a06425::t_f36bc6c6169d41 9,11,22-25,34,119,270-363,400-403,424-425,446
+benches/validation.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 39
+benches/scaling_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 20
+benches/hnsw_init_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 8
+benches/simd_comparison.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 23
+src/hnsw/insert.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 537-539,543-545,631-633,640-642
+src/index/flat.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 86-89,274-281,424,426-429,1445-1446,2997-3007
+src/sparse/vector.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 21-22,47,54-74,622-717
+src/wasm/mod.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 807-808,992,1435-1436,1666-1689,2416,3807-3809
+tests/flat_index_integration.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 1-191
+src/hnsw/search.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 694-696,756-758
+src/quantization/simd/avx2.rs
+  s_f1e46703a06425::t_07496065c4041c 128-131,133
+src/simd/popcount.rs
+  s_f1e46703a06425::t_bde360081cf195 137-139
+benches/hybrid_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 228
+benches/flat_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 22
+wasm/__tests__/sparse_hybrid.test.ts
+  s_f1e46703a06425::t_f36bc6c6169d41 1-173
+benches/search_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 17
+fuzz/fuzz_targets/sparse_storage/target.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 1-34
+benches/memory_bench.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 16
+benches/bq_search.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 25
+src/storage/mod.rs
+  s_f1e46703a06425::t_f36bc6c6169d41 223-224,364,366-369,371,374-378,382-384,389,391,518-519,544-545,645-648,652,757
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "11977efbef83e05e469e04110a331e62f09a0f92",
+  "prompts": {},
+  "sessions": {
+    "s_f1e46703a06425": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e9a51-a958-7913-a420-730183a6b10f",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Zed <hi@zed.dev>"
+    }
+  }
+}
