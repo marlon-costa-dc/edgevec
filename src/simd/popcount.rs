@@ -134,7 +134,9 @@ unsafe fn avx2_popcount_xor(a: &[u8], b: &[u8]) -> u32 {
     // SAFETY: All operations in this unsafe fn require unsafe context.
     // Caller must ensure required CPU features are available.
     unsafe {
-        use std::arch::x86_64::{__m256i, _mm256_extract_epi64, _mm256_loadu_si256, _mm256_xor_si256};
+        use std::arch::x86_64::{
+            __m256i, _mm256_extract_epi64, _mm256_loadu_si256, _mm256_xor_si256,
+        };
 
         let mut total = 0u32;
         let len = a.len();
